@@ -5,15 +5,31 @@
 #include <pthread.h>
 #include <arpa/inet.h>
 
-void *handleRequest(void *arg){
-    int newsock = *(int*)arg;
+void *handleRequest(void *arg) {
+    int newsock = *(int *)arg;
     free(arg);
+
     char buff[1001];
     int mlen = recv(newsock, buff, sizeof(buff) - 1, 0);
     if(mlen > 0){
         buff[mlen] = '\0';
-        printf("Received: %s\n", buff);
+        char *method = strtok(buff, " ");
+        char *path = strtok(NULL, " ");
+        char *version = strtok(NULL, "\r");
+
+        if(!method || !path || !version){
+            send(newsock, "400 Bad Request", "text/html", "Bad Request");
+        }else if(strcmp(method, "GET") == 0){
+            get_request(newsock, path);
+        }else if(strcmp(method, "HEAD") == 0){
+            head_request(newsock, path);
+        }else{
+            send(newsock, "501 Not Implemented", "text/html", "Not Implemented");
+        }
+    }else{
+        send_response(newsock, "400 Bad Request", "text/html", "Bad Request");
     }
+
     close(newsock);
     return NULL;
 }
@@ -45,6 +61,8 @@ int main(int argc, char *argv[]){
     if(bindServer < 0){
         perror("ERROR on binding");
         return 1;
+    } else {
+        printf("Server started on port %d\n", portNum);
     }
 
     while(1){

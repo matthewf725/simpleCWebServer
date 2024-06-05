@@ -4,7 +4,11 @@
 #include <unistd.h>
 #include <pthread.h>
 #include <arpa/inet.h>
-
+void send_response(int socket, char* status, char* type, char* body, int length){
+    char responsebuffer[64000];
+    snprintf(responsebuffer, sizeof(responsebuffer), "HTTP/1.1 %s\r\n" "Content-Type: %s\r\n" "Content-Length: %d\r\n" "\r\n""%s", status, type, length, body);
+    send(socket, responsebuffer, strlen(responsebuffer), 0);
+}
 void *handleRequest(void *arg) {
     int newsock = *(int *)arg;
     free(arg);
@@ -18,16 +22,16 @@ void *handleRequest(void *arg) {
         char *version = strtok(NULL, "\r");
 
         if(!method || !path || !version){
-            send(newsock, "400 Bad Request", "text/html", "Bad Request");
-        }else if(strcmp(method, "GET") == 0){
-            get_request(newsock, path);
-        }else if(strcmp(method, "HEAD") == 0){
-            head_request(newsock, path);
+            send_response(newsock, "400 Bad Request", "text/html", "Bad Request", 11);
+        // }else if(strcmp(method, "GET") == 0){
+        //     get_request(newsock, path);
+        // }else if(strcmp(method, "HEAD") == 0){
+        //     head_request(newsock, path);
         }else{
-            send(newsock, "501 Not Implemented", "text/html", "Not Implemented");
+            send_response(newsock, "501 Not Implemented", "text/html", "Not Implemented", 15);
         }
     }else{
-        send_response(newsock, "400 Bad Request", "text/html", "Bad Request");
+        send_response(newsock, "400 Bad Request", "text/html", "Bad Request", 11);
     }
 
     close(newsock);

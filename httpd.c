@@ -39,7 +39,7 @@ void handle_get_or_head_request(int socket, char* path, int get){
         FILE* fp = fopen(path, "r");
         if(fp == NULL){
             char errMsg[] = "HTTP/1.1 404 Not Found  (GET request for non-existent file)\r\n";
-            send_response(socket, "404 Not found", "text/html", errMsg, strlen(errMsg));
+            send_response(socket, "404 Not Found", "text/html", errMsg, strlen(errMsg));
         } else {
             struct stat st;
             stat(path, &st);

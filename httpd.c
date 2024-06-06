@@ -60,37 +60,28 @@ void *handleRequest(void *arg) {
     free(arg);
     char buff[1001];
     int mlen = recv(newsock, buff, sizeof(buff) - 1, 0);
-    if (mlen < 0) {
-        perror("ERROR on recv");
-        close(newsock);
-        return NULL;
-    }
-    buff[mlen] = '\0';
-    // printf("%s\n", buff);
-    // char buff[1001];
-    // int mlen = recv(newsock, buff, sizeof(buff) - 1, 0);
-    // if (mlen > 0) {
-    //     buff[mlen] = '\0';
-    //     char *method = strtok(buff, " ");
-    //     char *path = strtok(NULL, " ");
-    //     char *version = strtok(NULL, "\r");
+    if (mlen > 0) {
+        buff[mlen] = '\0';
+        char *method = strtok(buff, " ");
+        char *path = strtok(NULL, " ");
+        char *version = strtok(NULL, "\r");
 
-    //     if (!method || !path || !version) {
-    //         char errMsg[] = "HTTP/1.1 400 Bad Request  (malformed or unparseable HTTP request)\r\n";
-    //         send_response(newsock, "400 Bad Request", "text/html", errMsg, strlen(errMsg));
-    //     } else if (strcmp(method, "GET") == 0) {
-    //         handle_get_or_head_request(newsock, path, 1);
-    //     } else if (strcmp(method, "HEAD") == 0) {
-    //         handle_get_or_head_request(newsock, path, 0);
-    //     } else {
-    //         char errMsg[] = "HTTP/1.1 501 Not Implemented  (request that uses an action other than HEAD or GET)\r\n";
-    //         send_response(newsock, "501 Not Implemented", "text/html", errMsg, strlen(errMsg));
-    //     }
-    // } else {
-    //     char errMsg[] = "HTTP/1.1 400 Bad Request  (malformed or unparseable HTTP request)\r\n";
-    //     send_response(newsock, "400 Bad Request", "text/html", errMsg, strlen(errMsg));
-    // }
-    // close(newsock);
+        if (!method || !path || !version) {
+            char errMsg[] = "HTTP/1.1 400 Bad Request  (malformed or unparseable HTTP request)\r\n";
+            send_response(newsock, "400 Bad Request", "text/html", errMsg, strlen(errMsg));
+        } else if (strcmp(method, "GET") == 0) {
+            handle_get_or_head_request(newsock, path, 1);
+        } else if (strcmp(method, "HEAD") == 0) {
+            handle_get_or_head_request(newsock, path, 0);
+        } else {
+            char errMsg[] = "HTTP/1.1 501 Not Implemented  (request that uses an action other than HEAD or GET)\r\n";
+            send_response(newsock, "501 Not Implemented", "text/html", errMsg, strlen(errMsg));
+        }
+    } else {
+        char errMsg[] = "HTTP/1.1 400 Bad Request  (malformed or unparseable HTTP request)\r\n";
+        send_response(newsock, "400 Bad Request", "text/html", errMsg, strlen(errMsg));
+    }
+    close(newsock);
     return NULL;
 }
 
@@ -138,6 +129,9 @@ int main(int argc, char *argv[]){
             free(new_socket);
             continue;
         }
+        char buff[12445];
+        int mlen = recv(*new_socket, buff, sizeof(buff) - 1, 0);
+        printf("hello %s\n", buff);
         pthread_t ntid;
         int new_thread = pthread_create(&ntid, NULL, handleRequest, new_socket);
         if(new_thread != 0){

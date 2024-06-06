@@ -32,15 +32,17 @@ void handle_get_or_head_request(int socket, char* path, int get){
         send_response(socket, "401 Bad Request", "text/html", errMsg, strlen(errMsg));
     } else {
         if(strncmp(path, "./", 2) == 0){
+            path = path + 2;
+        } else if ((strncmp(path, ".", 1) == 0)){
             path = path + 1;
         }
-        FILE* fp = fopen(path + 1, "r");
+        FILE* fp = fopen(path, "r");
         if(fp == NULL){
             char errMsg[] = "HTTP/1.1 404 Not Found  (GET request for non-existent file)\r\n";
             send_response(socket, "404 Not found", "text/html", errMsg, strlen(errMsg));
         } else {
             struct stat st;
-            stat(path + 1, &st);
+            stat(path, &st);
             if(get){ //get parameter is set to anything but 0, do get, else do head
                 char file_contents[st.st_size + 1];
                 fread(file_contents, 1, st.st_size, fp);

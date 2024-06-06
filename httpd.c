@@ -18,7 +18,7 @@ void send_response(int socket, const char *status, const char *content_type, con
     }
 }
 
-void handle_get_request(int socket, char* path){
+void handle_get_or_send_request(int socket, char* path, int get){
     if (strstr(path, "..") != NULL || strchr(path, '~') != NULL) {
         char errMsg[] = "HTTP/1.1 401 Unauthorized  (Filepath contains '..' or '~')\r\n";
         send_response(socket, "401 Bad Request", "text/html", errMsg, strlen(errMsg));
@@ -30,11 +30,15 @@ void handle_get_request(int socket, char* path){
         } else {
             struct stat st;
             stat(path + 1, &st);
-            char file_contents[st.st_size + 1];
-            fread(file_contents, 1, st.st_size, fp);
-            file_contents[st.st_size] = '\0';
-            fclose(fp);
-            send_response(socket, "200 OK", "text/html", file_contents, st.st_size + 1);
+            if(get){ //get parameter is set to anything but 0, do get, else do head
+                char file_contents[st.st_size + 1];
+                fread(file_contents, 1, st.st_size, fp);
+                file_contents[st.st_size] = '\0';
+                send_response(socket, "200 OK", "text/html", file_contents, st.st_size + 1);
+            } else {
+                fclose(fp);
+                send_response(socket, "200 OK", "text/html", "", st.st_size + 1);
+            }
         }
     }
 }
@@ -54,9 +58,9 @@ void *handleRequest(void *arg) {
             char errMsg[] = "HTTP/1.1 400 Bad Request  (malformed or unparseable HTTP request)\r\n";
             send_response(newsock, "400 Bad Request", "text/html", errMsg, strlen(errMsg));
         } else if (strcmp(method, "GET") == 0) {
-            handle_get_request(newsock, path);
+            handle_get_request(newsock, path, 1);
         } else if (strcmp(method, "HEAD") == 0) {
-            // handle_head_request(newsock, path);
+            handle_head_request(newsock, path, 0);
         } else {
             char errMsg[] = "HTTP/1.1 501 Not Implemented  (request that uses an action other than HEAD or GET)\r\n";
             send_response(newsock, "501 Not Implemented", "text/html", errMsg, strlen(errMsg));

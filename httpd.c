@@ -63,13 +63,6 @@ void *handleRequest(void *arg) {
     int mlen = recv(newsock, buff, sizeof(buff) - 1, 0);
     if (mlen > 0) {
         buff[mlen] = '\0';
-        char status[500];
-        status[0] = '4';
-        status[1] = '0';
-        status[2] = '0';
-        status[3] = ' ';
-        status[4] = '\0';
-        send_response(newsock, status, "text/html", buff, strlen(buff));
         char *method = strtok(buff, " ");
         char *path = strtok(NULL, " ");
         char *version = strtok(NULL, "\r");

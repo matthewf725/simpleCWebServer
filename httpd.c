@@ -31,6 +31,9 @@ void handle_get_or_head_request(int socket, char* path, int get){
         char errMsg[] = "HTTP/1.1 401 Unauthorized  (Filepath contains '..' or '~')\r\n";
         send_response(socket, "401 Bad Request", "text/html", errMsg, strlen(errMsg));
     } else {
+        if(strncmp(path, "./", 2) == 0){
+            path = path + 1;
+        }
         FILE* fp = fopen(path + 1, "r");
         if(fp == NULL){
             char errMsg[] = "HTTP/1.1 404 Not Found  (GET request for non-existent file)\r\n";

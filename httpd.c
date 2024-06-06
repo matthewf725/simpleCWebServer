@@ -62,13 +62,13 @@ void *handleRequest(void *arg) {
     int mlen = recv(newsock, buff, sizeof(buff) - 1, 0);
     if (mlen > 0) {
         buff[mlen] = '\0';
+        // printf("hello %s\n", buff);
         char *method = strtok(buff, " ");
         char *path = strtok(NULL, " ");
         char *version = strtok(NULL, "\r");
 
         if (!method || !path || !version) {
-            char errMsg[] = "HTTP/1.1 400 Bad Request  (malformed or unparseable HTTP request)\r\n";
-            send_response(newsock, "400 Bad Request", "text/html", errMsg, strlen(errMsg));
+            send(newsock, "HTTP/1.1 400 Bad Request\r\n", strlen("HTTP/1.1 400 Bad Request\r\n"), 0);
         } else if (strcmp(method, "GET") == 0) {
             handle_get_or_head_request(newsock, path, 1);
         } else if (strcmp(method, "HEAD") == 0) {
@@ -78,8 +78,7 @@ void *handleRequest(void *arg) {
             send_response(newsock, "501 Not Implemented", "text/html", errMsg, strlen(errMsg));
         }
     } else {
-        char errMsg[] = "HTTP/1.1 400 Bad Request  (malformed or unparseable HTTP request)\r\n";
-        send_response(newsock, "400 Bad Request", "text/html", errMsg, strlen(errMsg));
+        send(newsock, "HTTP/1.1 400 Bad Request\r\n", strlen("HTTP/1.1 400 Bad Request\r\n"), 0);
     }
     close(newsock);
     return NULL;

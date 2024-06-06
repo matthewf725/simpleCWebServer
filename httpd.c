@@ -42,10 +42,10 @@ void handle_get_or_head_request(int socket, char* path, int get){
                 char file_contents[st.st_size + 1];
                 fread(file_contents, 1, st.st_size, fp);
                 file_contents[st.st_size] = '\0';
-                send_response(socket, "200 OK", "text/html", file_contents, st.st_size + 1);
+                send_response(socket, "200 OK", "text/html", file_contents, st.st_size);
             } else {
                 fclose(fp);
-                send_response(socket, "200 OK", "text/html", NULL, st.st_size + 1);
+                send_response(socket, "200 OK", "text/html", NULL, st.st_size);
             }
         }
     }

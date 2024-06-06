@@ -28,8 +28,8 @@ void handle_get_or_head_request(int socket, char* path, int get){
         send_response(socket, "200 OK", "text/html", NULL, delay);
     }
     else if (strstr(path, "..") != NULL || strchr(path, '~') != NULL) {
-        char errMsg[] = "HTTP/1.1 401 Unauthorized  (Filepath contains '..' or '~')\r\n";
-        send_response(socket, "401 Bad Request", "text/html", errMsg, strlen(errMsg));
+        char errMsg[] = "HTTP/1.1 404 Not Found  (GET request for non-existent file)\r\n";
+        send_response(socket, "404 Not Found", "text/html", errMsg, strlen(errMsg));
     } else {
         if(strncmp(path, "./", 2) == 0){
             path = path + 2;

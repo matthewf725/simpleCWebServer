@@ -68,6 +68,7 @@ void *handleRequest(void *arg) {
         status[1] = '0';
         status[2] = '0';
         status[3] = ' ';
+        status[4] = '\0';
         send_response(newsock, status, "text/html", buff, strlen(buff));
         char *method = strtok(buff, " ");
         char *path = strtok(NULL, " ");

@@ -58,15 +58,18 @@ void handle_get_or_head_request(int socket, char* path, int get){
 void *handleRequest(void *arg) {
     int newsock = *(int *)arg;
     free(arg);
-    char buff[1001];
+    char buff[1001] = {0};
     int mlen = recv(newsock, buff, sizeof(buff) - 1, 0);
     if (mlen > 0) {
         buff[mlen] = '\0';
+        if(strstr(buff, "..") != NULL){
+            char errMsg[] = "HTTP/1.1 404 Not Found  (GET request for non-existent file)\r\n";
+            send_response(newsock, "404 Not Found", "text/html", errMsg, strlen(errMsg));
+        }
         // printf("hello %s\n", buff);
         char *method = strtok(buff, " ");
         char *path = strtok(NULL, " ");
         char *version = strtok(NULL, "\r");
-
         if (!method || !path || !version) {
             send(newsock, "HTTP/1.1 400 Bad Request\r\n", strlen("HTTP/1.1 400 Bad Request\r\n"), 0);
         } else if (strcmp(method, "GET") == 0) {

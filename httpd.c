@@ -7,7 +7,7 @@
 #include <sys/stat.h>
 #include <errno.h>
 #include <sys/wait.h>
-
+#include <sys/stat.h>
 //GET /httpd.c HTTP/1.1\r\nHost: localhost\r\nUser-Agent: curl/7.64.1\r\nAccept: */*\r\n\r\n
 void send_response(int socket, const char *status, const char *content_type, const char *body, int body_length) {
     char response[4096];
@@ -18,7 +18,26 @@ void send_response(int socket, const char *status, const char *content_type, con
     }
 }
 
-
+void handle_get_request(int socket, char* path){
+    if (strstr(path, "..") != NULL || strchr(path, '~') != NULL) {
+        char errMsg[] = "HTTP/1.1 401 Unauthorized  (Filepath contains '..' or '~')\r\n";
+        send_response(socket, "401 Bad Request", "text/html", errMsg, strlen(errMsg));
+    } else {
+        FILE* fp = fopen(path + 1, "r");
+        if(fp == NULL){
+            char errMsg[] = "HTTP/1.1 404 Not Found  (GET request for non-existent file)\r\n";
+            send_response(socket, "404 Not found", "text/html", errMsg, strlen(errMsg));
+        } else {
+            struct stat st;
+            stat(path + 1, &st);
+            char file_contents[st.st_size + 1];
+            fread(file_contents, 1, st.st_size, fp);
+            file_contents[st.st_size] = '\0';
+            fclose(fp);
+            send_response(socket, "200 OK", "text/html", file_contents, st.st_size + 1);
+        }
+    }
+}
 void *handleRequest(void *arg) {
     int newsock = *(int *)arg;
     free(arg);
@@ -34,10 +53,10 @@ void *handleRequest(void *arg) {
         if (!method || !path || !version) {
             char errMsg[] = "HTTP/1.1 400 Bad Request  (malformed or unparseable HTTP request)\r\n";
             send_response(newsock, "400 Bad Request", "text/html", errMsg, strlen(errMsg));
-        // } else if (strcmp(method, "GET") == 0) {
-        //     handle_get_request(newsock, path);
-        // } else if (strcmp(method, "HEAD") == 0) {
-        //     handle_head_request(newsock, path);
+        } else if (strcmp(method, "GET") == 0) {
+            handle_get_request(newsock, path);
+        } else if (strcmp(method, "HEAD") == 0) {
+            // handle_head_request(newsock, path);
         } else {
             char errMsg[] = "HTTP/1.1 501 Not Implemented  (request that uses an action other than HEAD or GET)\r\n";
             send_response(newsock, "501 Not Implemented", "text/html", errMsg, strlen(errMsg));

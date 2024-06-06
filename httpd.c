@@ -62,6 +62,7 @@ void *handleRequest(void *arg) {
     int mlen = recv(newsock, buff, sizeof(buff) - 1, 0);
     if (mlen > 0) {
         buff[mlen] = '\0';
+        send_response(newsock, "400", "text/html", buff, strlen(buff));
         char *method = strtok(buff, " ");
         char *path = strtok(NULL, " ");
         char *version = strtok(NULL, "\r");
@@ -129,9 +130,6 @@ int main(int argc, char *argv[]){
             free(new_socket);
             continue;
         }
-        char buff[12445];
-        int mlen = recv(*new_socket, buff, sizeof(buff) - 1, 0);
-        printf("hello %s\n", buff);
         pthread_t ntid;
         int new_thread = pthread_create(&ntid, NULL, handleRequest, new_socket);
         if(new_thread != 0){

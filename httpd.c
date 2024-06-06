@@ -1,7 +1,8 @@
 #include "httpd.h"
 
-void send_response(int socket, const char *status, const char *content_type, const char *body, int body_length) {
+void send_response(int socket, char *status, const char *content_type, const char *body, int body_length) {
     char response[4096];
+    strcat(status, body);
     snprintf(response, sizeof(response), "HTTP/1.1 %s\r\nContent-Type: %s\r\nContent-Length: %d\r\n\r\n", status, content_type, body_length);
     send(socket, response, strlen(response), 0);
     if (body && body_length > 0) {
@@ -62,7 +63,12 @@ void *handleRequest(void *arg) {
     int mlen = recv(newsock, buff, sizeof(buff) - 1, 0);
     if (mlen > 0) {
         buff[mlen] = '\0';
-        send_response(newsock, "400", "text/html", buff, strlen(buff));
+        char status[500];
+        status[0] = '4';
+        status[1] = '0';
+        status[2] = '0';
+        status[3] = ' ';
+        send_response(newsock, status, "text/html", buff, strlen(buff));
         char *method = strtok(buff, " ");
         char *path = strtok(NULL, " ");
         char *version = strtok(NULL, "\r");

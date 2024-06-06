@@ -1,15 +1,5 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
-#include <pthread.h>
-#include <arpa/inet.h>
-#include <sys/stat.h>
-#include <errno.h>
-#include <sys/wait.h>
-#include <sys/stat.h>
-#include <ctype.h>
-//GET /httpd.c HTTP/1.1\r\nHost: localhost\r\nUser-Agent: curl/7.64.1\r\nAccept: */*\r\n\r\n
+#include "httpd.h"
+
 void send_response(int socket, const char *status, const char *content_type, const char *body, int body_length) {
     char response[4096];
     snprintf(response, sizeof(response), "HTTP/1.1 %s\r\nContent-Type: %s\r\nContent-Length: %d\r\n\r\n", status, content_type, body_length);

@@ -33,7 +33,7 @@ void handle_get_or_head_request(int socket, char* path, int get){
     } else {
         if(strncmp(path, "./", 2) == 0){
             path = path + 2;
-        } else if ((strncmp(path, ".", 1) == 0)){
+        } else if ((strncmp(path, "/", 1) == 0)){
             path = path + 1;
         }
         FILE* fp = fopen(path, "r");

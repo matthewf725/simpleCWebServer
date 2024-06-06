@@ -8,6 +8,7 @@
 #include <errno.h>
 #include <sys/wait.h>
 #include <sys/stat.h>
+#include <ctype.h>
 //GET /httpd.c HTTP/1.1\r\nHost: localhost\r\nUser-Agent: curl/7.64.1\r\nAccept: */*\r\n\r\n
 void send_response(int socket, const char *status, const char *content_type, const char *body, int body_length) {
     char response[4096];
@@ -17,9 +18,26 @@ void send_response(int socket, const char *status, const char *content_type, con
         send(socket, body, body_length, 0);
     }
 }
-
+int checkForDelay(char* path){
+    if(strncmp(path, "/delay/", strlen("/delay/") ) == 0){
+        const char *num_str = path + strlen("/delay/");
+        while (*num_str) {
+            if (!isdigit((unsigned char)*num_str)) {
+                return -1;
+            }
+            num_str++;
+        }
+        return atoi(path + strlen("/delay/"));
+    }
+    return -1;
+}
 void handle_get_or_head_request(int socket, char* path, int get){
-    if (strstr(path, "..") != NULL || strchr(path, '~') != NULL) {
+    int delay = checkForDelay(path);
+    if(delay != -1){
+        sleep(delay);
+        send_response(socket, "200 OK", "text/html", NULL, delay);
+    }
+    else if (strstr(path, "..") != NULL || strchr(path, '~') != NULL) {
         char errMsg[] = "HTTP/1.1 401 Unauthorized  (Filepath contains '..' or '~')\r\n";
         send_response(socket, "401 Bad Request", "text/html", errMsg, strlen(errMsg));
     } else {

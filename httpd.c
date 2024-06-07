@@ -1,5 +1,4 @@
 #include "httpd.h"
-
 void send_response(int socket, char *status, const char *content_type, const char *body, int body_length) {
     char response[4096];
     snprintf(response, sizeof(response), "HTTP/1.1 %s\r\nContent-Type: %s\r\nContent-Length: %d\r\n\r\n", status, content_type, body_length);

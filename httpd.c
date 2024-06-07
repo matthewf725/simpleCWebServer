@@ -61,11 +61,6 @@ void *handleRequest(void *arg) {
     char buff[1001] = {0};
     int mlen = recv(newsock, buff, sizeof(buff) - 1, 0);
     if (mlen > 0) {
-        buff[mlen] = '\0';
-        if(strstr(buff, "..") != NULL){
-            char errMsg[] = "HTTP/1.1 404 Not Found  (GET request for non-existent file)\r\n";
-            send_response(newsock, "404 Not Found", "text/html", errMsg, strlen(errMsg));
-        }
         // printf("hello %s\n", buff);
         char *method = strtok(buff, " ");
         char *path = strtok(NULL, " ");

@@ -64,8 +64,10 @@ void *handleRequest(void *arg) {
         // printf("hello %s\n", buff);
         char *method = strtok(buff, " ");
         char *path = strtok(NULL, " ");
-        char *version = strtok(NULL, "\r");
+        char *version = strtok(NULL, "\r\n");
         if (!method || !path || !version) {
+            send(newsock, "HTTP/1.1 400 Bad Request\r\n", strlen("HTTP/1.1 400 Bad Request\r\n"), 0);
+        } else if (strcmp(version, "HTTP/1.1") != 0) {
             send(newsock, "HTTP/1.1 400 Bad Request\r\n", strlen("HTTP/1.1 400 Bad Request\r\n"), 0);
         } else if (strcmp(method, "GET") == 0) {
             handle_get_or_head_request(newsock, path, 1);
@@ -104,7 +106,10 @@ int main(int argc, char *argv[]){
     serverAddress.sin_family = AF_INET;
     serverAddress.sin_addr.s_addr = INADDR_ANY;
     serverAddress.sin_port = htons(portNum);
-
+    const int enable = 1;
+    if (setsockopt(serverSocket, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(int)) < 0){
+        perror("setsockopt(SO_REUSEADDR) failed");
+    }
     int bindServer = bind(serverSocket, (struct sockaddr *)&serverAddress, sizeof(serverAddress));
     if(bindServer < 0){
         perror("ERROR on binding");
